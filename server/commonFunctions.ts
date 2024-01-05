@@ -39,8 +39,8 @@ function performBackup() {
 
 const filePathEncrypted = `../encryptedBackup/backup-${getCurrentNumericDate()}.log`; 
 
-const algorithm = 'aes-256-cbc';
-const secretKey = 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3'; 
+const algorithm = 'aes-256-cbc'; //can be taken from env file
+const secretKey = 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3'; //can be taken from env file
 const iv = crypto.randomBytes(16);
 
 function encrypt(text:any) {
