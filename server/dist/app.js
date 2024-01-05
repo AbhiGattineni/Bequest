@@ -14,12 +14,19 @@ app.use(express_1.default.json());
 // Routes
 app.get("/", (req, res) => {
     const data = database.data;
-    const signature = (0, commonFunctions_1.default)(data);
-    res.json(signature);
+    const hash = (0, commonFunctions_1.default)(data);
+    res.json({ data, hash });
 });
-app.post("/", (req, res) => {
-    database.data = req.body.data;
-    res.sendStatus(200);
+app.put("/", (req, res) => {
+    const { originalData, hashedData } = req.body;
+    const rehashedData = (0, commonFunctions_1.default)(originalData);
+    if (rehashedData === hashedData) {
+        database.data = originalData;
+        res.sendStatus(200);
+    }
+    else {
+        res.status(400).send("Data integrity check failed");
+    }
 });
 app.listen(PORT, () => {
     console.log("Server running on port " + PORT);

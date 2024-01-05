@@ -1,35 +1,59 @@
 import React, { useEffect, useState } from "react";
+import sha256 from 'crypto-js/sha256';
 
 const API_URL = "http://localhost:8080";
 
+interface DataSignature {
+  data: string;
+  hash: string;
+}
+
 function App() {
   const [data, setData] = useState<string>();
+  const [dataSignature, setDataSignature] = useState<DataSignature | null>(null);
+  const [isDataIntact, setIsDataIntact] = useState<boolean>(false);
+  const [verify, setVerify] = useState<boolean>(false);
 
   useEffect(() => {
     getData();
   }, []);
 
   const getData = async () => {
-    const response = await fetch(API_URL);
-    const { data } = await response.json();
-    setData(data);
+    try {
+      const response = await fetch(API_URL);
+      const signature: DataSignature = await response.json();
+      setDataSignature(signature);
+      setIsDataIntact(verifyDataIntegrity(signature.data, signature.hash));
+      setData(signature.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
 
+  const verifyDataIntegrity = (data: string, hash: string): boolean => {
+    const clientHash = sha256(data).toString();
+    return clientHash === hash;
+  }
+
   const updateData = async () => {
+    const hashedData = sha256(data).toString();
+    setVerify(false);
+  
     await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ data }),
+      method: 'PUT',
+      body: JSON.stringify({ originalData: data, hashedData }),
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
     });
-
+  
     await getData();
   };
 
   const verifyData = async () => {
-    throw new Error("Not implemented");
+    getData();
+    setVerify(true);
   };
 
   return (
@@ -63,6 +87,19 @@ function App() {
           Verify Data
         </button>
       </div>
+      <div>
+    {verify && (
+      <div style={{ fontSize: "20px" }}>
+        Data Integrity Check: {isDataIntact ? 'Passed' : 'Failed'}
+      </div>
+    )}
+    {verify && dataSignature && (
+      <div style={{ fontSize: "20px" }}>
+        Data: {dataSignature.data} <br />
+        Hash: {dataSignature.hash}
+      </div>
+    )}
+  </div>
     </div>
   );
 }

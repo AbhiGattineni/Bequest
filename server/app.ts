@@ -12,14 +12,22 @@ app.use(express.json());
 // Routes
 
 app.get("/", (req, res) => {
-  const data = database.data;
-  const signature = createDigitalSignature(data);
-  res.json(signature);
+  const data = database.data; 
+  const hash = createDigitalSignature(data); 
+  res.json({ data, hash });
 });
 
-app.post("/", (req, res) => {
-  database.data = req.body.data;
-  res.sendStatus(200);
+app.put("/", (req, res) => {
+  const { originalData, hashedData } = req.body;
+
+  const rehashedData = createDigitalSignature(originalData);
+
+  if (rehashedData === hashedData) {
+    database.data = originalData; 
+    res.sendStatus(200);
+  } else {
+    res.status(400).send("Data integrity check failed");
+  }
 });
 
 app.listen(PORT, () => {
