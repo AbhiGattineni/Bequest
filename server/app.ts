@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import createDigitalSignature from "./commonFunctions";
 
 const PORT = 8080;
 const app = express();
@@ -11,7 +12,9 @@ app.use(express.json());
 // Routes
 
 app.get("/", (req, res) => {
-  res.json(database);
+  const data = database.data;
+  const signature = createDigitalSignature(data);
+  res.json(signature);
 });
 
 app.post("/", (req, res) => {
