@@ -8,16 +8,18 @@ const crypto_1 = __importDefault(require("crypto"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const node_cron_1 = __importDefault(require("node-cron"));
+//tried implementing digital signature but somehow i am facing issue with the unique key.
 function createDigitalSignature(data) {
     return crypto_1.default.createHash('sha256').update(data).digest('hex');
 }
 exports.default = createDigitalSignature;
+//to ensure data is tracked, logging is implemented with time stamp
 function dataHistory(logEntry) {
     fs_1.default.appendFileSync(path_1.default.join(__dirname, '..', 'dataHistory.log'), JSON.stringify(logEntry) + '\n');
     fs_1.default.appendFileSync(path_1.default.join(__dirname, '..', 'datafile.log'), logEntry.data + '\n');
 }
 exports.dataHistory = dataHistory;
-// Function to perform the backup
+// Function to perform the backup every time interval
 function performBackup() {
     const dataFilePath = path_1.default.join(__dirname, '..', 'datafile.log');
     const backupDir = path_1.default.resolve(__dirname, '..', 'backup.log');
@@ -31,6 +33,7 @@ function performBackup() {
         console.error('Error code:', error.code);
     }
 }
+//cron job to make backup of the data
 node_cron_1.default.schedule('* * * * *', () => {
     console.log('Running scheduled backup...');
     performBackup();
